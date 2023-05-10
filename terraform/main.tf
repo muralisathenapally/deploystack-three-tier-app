@@ -49,6 +49,7 @@ resource "google_service_account" "runsa" {
   display_name = "Service Account Three Tier App on Cloud Run"
 }
 
+
 resource "google_project_iam_member" "allrun" {
   project    = data.google_project.project.number
   role       = "roles/secretmanager.secretAccessor"
@@ -137,7 +138,7 @@ resource "google_sql_database_instance" "main" {
 resource "google_storage_bucket" "temp" {
   name   = "${var.project_id}-temp"
   project = var.project_id
-  location = var.zone
+  location = var.region
   
   depends_on = [google_sql_database_instance.main]
 }
@@ -282,7 +283,7 @@ resource "google_cloud_run_service" "api" {
 
     metadata {
       annotations = {
-        "autoscaling.knative.dev/maxScale"        = "1000"
+        "autoscaling.knative.dev/maxScale"        = "10"
         "run.googleapis.com/cloudsql-instances"   = google_sql_database_instance.main.connection_name
         "run.googleapis.com/client-name"          = "terraform"
         "run.googleapis.com/vpc-access-egress"    = "all"
