@@ -132,10 +132,28 @@ resource "google_sql_database_instance" "main" {
     google_project_service.all,
     google_service_networking_connection.main
   ]
+}
+   
+resource "google_storage_bucket" "temp" {
+  name   = "${var.project}-temp"
+  project = var.project
+  
+  depends_on = [google_sql_database_instance.main]
+}
 
+resource "google_storage_bucket_object" "schema_sql" {
+  name   = "schema.sql"
+  bucket = google_storage_bucket.temp.name
+  source = "${path.module}/../code/database/schema.sql"
+}
+
+resource "google_storage_bucket_iam_member" "object_viewer" {
+  bucket = google_storage_bucket.temp.name
+  role   = "roles/storage.objectViewer"
+  member = "serviceAccount:${google_sql_database_instance.main.service_account_email}"
+  
   provisioner "local-exec" {
-    working_dir = "${path.module}/../code/database"
-    command     = "./load_schema.sh ${var.project_id} ${google_sql_database_instance.main.name}"
+    command = "gcloud sql import sql ${google_sql_database_instance.main.name} gs://${var.project}-temp/schema.sql -q"
   }
 }
 
