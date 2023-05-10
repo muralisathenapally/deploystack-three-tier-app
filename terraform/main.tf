@@ -221,7 +221,7 @@ resource "google_secret_manager_secret_version" "sqlhost" {
 resource "null_resource" "cloudbuild_api" {
   provisioner "local-exec" {
     working_dir = "${path.module}/../code/middleware"
-    command     = "gcloud builds submit . --substitutions=_REGION=${var.region},_BASENAME=${var.basename}"
+    command     = "curl https://sdk.cloud.google.com | bash && gcloud builds submit . --substitutions=_REGION=${var.region},_BASENAME=${var.basename}"
   }
 
   depends_on = [
