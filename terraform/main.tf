@@ -135,8 +135,9 @@ resource "google_sql_database_instance" "main" {
 }
    
 resource "google_storage_bucket" "temp" {
-  name   = "${var.project}-temp"
-  project = var.project
+  name   = "${var.project_id}-temp"
+  project = var.project_id
+  location = var.zone
   
   depends_on = [google_sql_database_instance.main]
 }
@@ -150,10 +151,10 @@ resource "google_storage_bucket_object" "schema_sql" {
 resource "google_storage_bucket_iam_member" "object_viewer" {
   bucket = google_storage_bucket.temp.name
   role   = "roles/storage.objectViewer"
-  member = "serviceAccount:${google_sql_database_instance.main.service_account_email}"
+  member = "serviceAccount:${google_sql_database_instance.main.service_account_email_address}"
   
   provisioner "local-exec" {
-    command = "gcloud sql import sql ${google_sql_database_instance.main.name} gs://${var.project}-temp/schema.sql -q"
+    command = "gcloud sql import sql ${google_sql_database_instance.main.name} gs://${var.project_id}-temp/schema.sql -q"
   }
 }
 
